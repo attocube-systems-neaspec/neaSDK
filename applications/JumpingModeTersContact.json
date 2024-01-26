@@ -1,0 +1,85 @@
+{
+  "GlobalVariables": {
+    "m1aScaling": "readFromSettings(\u0027calibration\u0027, \u0027m1a-scaling\u0027)",
+    "regulateHead": false,
+    "targetHeadOffset": 0.0,
+    "waitForSpectrum": false,
+    "headCalibration": "readFromSettings(\u0027calibration\u0027, \u0027head-z-voltage\u0027)",
+    "previousZDrift": 1000.0,
+    "maxZDrift": 1.000,
+    "sleepTime": 0.0,
+    "x": 0.0,
+    "y": 0.0,
+    "firstPixel": true
+  },
+  "PID": {
+    "HeadRegulatorContact": {
+      "Setpoint": "return [RegulatorZ.MaximalPossibleSetpoint - (1 - RegulatorZ.RelativeSetpoint) * 50];",
+      "SetpointMode": "Absolute",
+      "MaximumOutput": "9800.0",
+      "MinimumOutput": "-9800.0",
+      "InitialOutput": "0.0",
+      "P": "3",
+      "I": "0.3",
+      "D": "0.0"
+    }
+  },
+  "Outputs": {
+    "HeadOffset": "if (regulateHead)\n    return [HeadRegulatorContact(m1aScaling * 0.5 * AveragedMechanical[0])];\n\n/*\nThis keeps the output of HeadRegulator close to the current value of HeadOffset\nwhile the HeadRegulator isn\u0027t used. This prevents overshooting when \nhead regulation is enabled because HeadRegulator would output e.g. min value \ninitially\n*/\n\nvar setpoint := RegulatorZ.MaximalPossibleSetpoint - (1.0 - RegulatorZ.RelativeSetpoint) * 50;\nvar currentOutput := HeadRegulatorContact(setpoint);\nvar speed := 250.0; // arbitrary value, to be optimized - corresponds to adjustment speed\n\nvar direction := 0;\nif (currentOutput \u003E HeadOffset)\n    direction := 1;\nelse if (currentOutput \u003C HeadOffset)\n    direction := -1;\n\nvar adjustmentSetpoint := setpoint - (1.0 - RegulatorZ.RelativeSetpoint) * (50 \u002B direction * speed);\nHeadRegulatorContact(adjustmentSetpoint);\n\nreturn [adjustHeadOffset(HeadOffset,targetHeadOffset)];"
+  },
+  "Transitions": {
+    "adjustHeadOffset": {
+      "Velocity": 40,
+      "Deceleration": 5,
+      "Acceleration": 5
+    },
+    "transitionX": {
+      "Velocity": 0.02
+    },
+    "transitionY": {
+      "Velocity": 0.02
+    }
+  },
+  "Meta": {
+    "ScanMode": "JumpingModeTers"
+  },
+  "Scan": {
+    "Outcome": "BackAndForthSeparated",
+    "RegulatedZ": "Mandatory",
+    "Arriving": {
+      "Z": "// check drift only after sleepTime has passed\ntargetHeadOffset := 0.0;\n\nif (Scan.Time \u003C sleepTime) {\n    Scan.Arriving();\n    return [];\n}\n// check every 2 sec\nvar t := sleepTime;\nsleepTime := t \u002B 2000;\n\n\nregulateHead := false;\n\n// continue Arriving if drift is above threshold\nif (abs(previousZDrift - AveragedZ) \u003E maxZDrift) {\n    previousZDrift := AveragedZ;\n    Scan.Arriving();\n} \n\nif (RegulatorZ.MaximalPossibleSetpoint - (1 - RegulatorZ.RelativeSetpoint) * 50 \u003E m1aScaling * 0.5 * AveragedMechanical[0])\n    Scan.Arriving();\n\nreturn [];\n/*\nif (Scan.Time \u003C 5000){\n    Scan.Arriving();\n    regulateHead := false;\n    return [];\n}\n\nif (Scan.Time \u003C 15000){\n    Scan.Arriving();\n    regulateHead := true;\n    return [UnaveragedZ];\n}\nif (Scan.Time \u003C 25000){\n    Scan.Arriving();\n    regulateHead := false;\n    return [];\n}\n*/",
+      "XY": "return [];",
+      "RowColumnDepth": "return [];"
+    },
+    "MovingForward": {
+      "Z": "waitForSpectrum := false;\nvar m0a := m1aScaling * 0.5 * AveragedMechanical[0];\nvar setpoint95 := RegulatorZ.MaximalPossibleSetpoint - (0.05) * 50;\n\nif (not ((abs(UnaveragedX-x)\u003C0.03) and (abs(UnaveragedY-y)\u003C 0.03))){\n    targetHeadOffset := -9800.0;\n    regulateHead := false;\n    //if (m0a \u003C setpoint95)\n    //    return [];\n    return [UnaveragedZ];\n}\n\n\nif (RegulatorZ.MaximalPossibleSetpoint - (1 - RegulatorZ.RelativeSetpoint) * 50 \u003E m1aScaling * 0.5 * AveragedMechanical[0]){\n    regulateHead := false;\n    targetHeadOffset := 0.0;\n    return [];\n}\n// approach head with constant speed. Turn on regulator only when setpoint is almost reached.\nif (m0a \u003E setpoint95) {\n    targetHeadOffset := targetHeadOffset \u002B 12; // 5 mV per Iteration ~ 10 V per sec\n    return [UnaveragedZ];\n}\nelse{\n    regulateHead := true;\n    return [UnaveragedZ];\n}\n\n",
+      "XY": "// generic 2D scan without overscanning\nvar x_s;\nvar y_s;\nif (Scan.Columns == 1)\n    x_s := ((PixelColumn)/Scan.Columns-0.5) * Scan.Size.X;\nelse\n    x_s := ((PixelColumn)/(Scan.Columns-1)-0.5) * Scan.Size.X;\nif (Scan.Rows == 1)\n    y_s := ((PixelRow)/Scan.Rows-0.5) * Scan.Size.Y;\nelse\n    y_s := ((PixelRow)/(Scan.Rows-1)-0.5) * Scan.Size.Y;\n\n// var x := x_s \u002B Scan.Center.X;\n// var y := y_s \u002B Scan.Center.Y;\nvar sina := sin(Scan.Rotation);\nvar cosa := cos(Scan.Rotation);\n\nx := Scan.Center.X - sina * y_s \u002B cosa * x_s;\ny := Scan.Center.Y \u002B sina * x_s \u002B cosa * y_s;\n\nvar xCurrent := roundn(UnaveragedX,2);\nvar yCurrent := roundn(UnaveragedY,2);\n\nif (((RegulatorZ.MaximalPossibleSetpoint - (1 - RegulatorZ.RelativeSetpoint) * 50 \u003E m1aScaling * 0.5 * AveragedMechanical[0])) and (HeadOffset \u003E= -10.0))\n    Scan.WaitingForward();\n\nreturn [transitionX(xCurrent,x),transitionY(yCurrent,y)];\n",
+      "RowColumnDepth": "return [];"
+    },
+    "WaitingForward": {
+      "RowColumnDepth": "regulateHead := false;\ntargetHeadOffset := 0.0;\n\nif (not (waitForSpectrum)){\n    waitForSpectrum := true;\n    Scan.SuspendToWaitForClient();\n    return [];\n}\nif (not (Scan.IsSuspendedToWaitForClient))\n    Scan.MovingBackward();\n    return [PixelRow,PixelColumn,0];\nreturn [];",
+      "Z": "return [];",
+      "XY": "return [];"
+    },
+    "MovingBackward": {
+      "Z": "regulateHead := false;\nwaitForSpectrum := false;\ntargetHeadOffset := -9800.0;\nif (abs(HeadOffset - targetHeadOffset) \u003C 10.0)\n    Scan.WaitingBackward();\nreturn [UnaveragedZ];",
+      "XY": "return [];",
+      "RowColumnDepth": "return [];"
+    },
+    "WaitingBackward": {
+      "Z": "return [UnaveragedZ];",
+      "RowColumnDepth": "if (not (waitForSpectrum)){\n    waitForSpectrum := true;\n    Scan.SuspendToWaitForClient();\n    return [];\n}\nif (not (Scan.IsSuspendedToWaitForClient))\n    Scan.MovingNextRow();\n    return [PixelRow,PixelColumn,1];\nreturn [];",
+      "XY": "return [];"
+    },
+    "MovingNextRow": {
+      "Z": "\nreturn [UnaveragedZ];",
+      "XY": "return [];",
+      "RowColumnDepth": "regulateHead := false;\nvar row := PixelRow;\nvar col := PixelColumn \u002B 1;\nif (col == Scan.Columns) {\n    col := 0;\n    row \u002B= 1;\n}\n/*if ((Scan.Time \u003C 1000) or (HeadOffset \u003C 9600.0)){\n    \n    return [];\n}*/\n\nif (row == Scan.Rows)\n    Scan.End();\nelse\n    Scan.MovingForward();\nreturn [row, col, 0];"
+    },
+    "Departing": {
+      "Z": "regulateHead := false;\ntargetHeadOffset := 0.0;\nif (abs(HeadOffset) \u003E 5.)\n    Scan.Departing();\nreturn [];",
+      "XY": "return [Scan.Center.X, Scan.Center.Y];",
+      "RowColumnDepth": "return [];"
+    }
+  }
+}

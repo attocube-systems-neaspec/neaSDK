@@ -1,0 +1,53 @@
+{
+    "GlobalVariables": {
+      "HeadZScaling": "readFromSettings(\u0027calibration\u0027, \u0027head-z-voltage\u0027)",
+      "NewHeadOffset": "HeadOffset",
+      "ToNewHeadOffset": false,
+      "SampleZ": "2.0",
+      "OffsetTolerance": 2,
+      "Tolerance": 0.01,
+      "HeadOffsetStart": 0.0,
+      "scaling": "readFromSettings(\u0027calibration\u0027, \u0027m1a-scaling\u0027)",
+      "SampleZScaling": "readFromSettings(\u0027calibration\u0027, \u0027z-voltage\u0027)",
+      "AwaitDrift": "true",
+      "driftIterator": 0,
+      "PreviousZ": -1.0,
+      "CurrentZ": -1.0
+    },
+    "Scan": {
+      "Departing": {
+        "Z": "/*NewHeadOffset := HeadOffset\u002B5; //5 is effective approach speed and to be determined\nToNewHeadOffset := true;\n//if ((abs(HeadOffset - NewHeadOffset) \u003C OffsetTolerance)){ //end of scan or drift into contact\n//    return [];\n//}\nif (RegulatorZ.MaximalPossibleSetpoint * RegulatorZ.RelativeSetpoint \u003E abs(AveragedMechanical[1]))\n    return [];\nelse {\n    Scan.Departing();\n    return [SampleZ];\n}*/\nNewHeadOffset := 0;\nToNewHeadOffset := true;\n\nif (abs(HeadOffset) \u003E 5)\n    Scan.Departing();\nreturn [];"
+      },
+      "Arriving": {
+        "Z": "NewHeadOffset := HeadOffsetStart;\nToNewHeadOffset:=false;\nSampleZ := 0.0;\nAwaitDrift := true;\nif (RegulatorZ.MaximalPossibleSetpoint * RegulatorZ.RelativeSetpoint \u003C abs(AveragedMechanical[1]))\n    Scan.Arriving();\nreturn [];"
+      },
+      "WaitingForward": {
+        "RowColumnDepth": "ToNewHeadOffset := false;\nif (PixelDepth == Scan.Rows)\n    Scan.MovingBackward();\nelse\n    Scan.MovingForward();\nreturn [];",
+        "Z": "return [SampleZ];"
+      },
+      "Template": {
+        "RowsColumnsDepths": "return [1, 1, Scan.Rows]",
+        "Class": "3D-Steps"
+      },
+      "MovingForward": {
+        "Z": "ToNewHeadOffset := true;\nif (AwaitDrift) {\n    driftIterator := driftIterator \u002B 1;\n    if (driftIterator%1250 == 0){\n        PreviousZ := CurrentZ;\n        CurrentZ := AveragedZ;\n    }\n    if (abs(CurrentZ - PreviousZ) \u003C 0.05*0.001 and PreviousZ \u003E 0)\n        AwaitDrift := false;\n    Scan.MovingForward();\n    //SampleZ := (140-UnaveragedZ)*SampleZScaling;\n    SampleZ := UnaveragedZ;\n    return [];\n}\nelse {\n    NewHeadOffset := HeadOffsetStart - (PixelDepth/(Scan.Rows-1) * Scan.Size.Z) / (0.001*HeadZScaling);\n    if (NewHeadOffset \u003C -10000)\n        Scan.MovingBackward();\n    else if (abs(HeadOffset-NewHeadOffset) \u003C OffsetTolerance)\n        Scan.WaitingForward();\n    else\n        Scan.MovingForward();\n    return [SampleZ];\n}"
+      },
+      "MovingBackward": {
+        "Z": "NewHeadOffset := HeadOffset\u002B1; //5 is effective approach speed and to be determined\nToNewHeadOffset := true;\n//if ((abs(HeadOffset - NewHeadOffset) \u003C OffsetTolerance)){ //end of scan or drift into contact\n//    return [];\n//}\nif (RegulatorZ.MaximalPossibleSetpoint * RegulatorZ.RelativeSetpoint \u003E abs(AveragedMechanical[1]))\n    Scan.End();\nreturn [SampleZ];\n\n"
+      }
+    },
+    "Outputs": {
+      "HeadOffset": "ToNewHeadOffset ? headZtransition(HeadOffset, NewHeadOffset) : HeadOffset",
+      "Mechanical": "var v[6];\n\nfor (var n := 0; n \u003C 6; n\u002B=1){\n    switch {\n        case n == 5:\n            v[n] := [(HeadOffsetStart-HeadOffset)*HeadZScaling];\n        default:\n            v[n] := AveragedMechanical[n];\n    }\n}\nif (PreviousZ \u003E= 0)    \n    v[4] := (CurrentZ - PreviousZ)*1000;\nreturn [v];"
+    },
+    "Meta": {
+      "ScanMode": "TipBasedApproachCurveTersTapping"
+    },
+    "Transitions": {
+      "headZtransition": {
+        "Velocity": 20,
+        "Deceleration": 5,
+        "Acceleration": 5
+      }
+    }
+  }
