@@ -1,0 +1,70 @@
+{
+  /*
+   Allows changing the tapping voltage and therefore tapping amplitude while in contact.
+   This requires to estimate the new tapping amplitude out of contact and setpoint 
+   which is done by assuming a linear relation between tapping voltage and tapping amplitude.
+
+   Uses standard Fourier demodulation.
+
+   Change tapping voltage in contact by setting parameters: 
+     1. doRegulate to true to enable z regulation
+     2. originalHeadAmp to current HeadAmplitude
+     3. headAmp to required HeadAmplitude
+     4. overwriteHeadAmplitude to True
+    
+    Comes with standard 2D imaging
+  */
+  "Inputs": {
+    "Mechanical": "Daq_1024_2500ksps",
+    "Optical": "Daq_1024_2500ksps"
+  },
+  "Channels": {
+    "Mechanical": "/* \nbased on Fourier demodulation but\n1. writes current HeadAmplitude to M5A for observation\n2. new recalculated setpoint to M4A\n*/\nvar v[6]; \nif(overwriteHeadAmplitude){\n    HeadAmplitude := headAmp;\n    setpointScaling := headAmp/originalHeadAmp;\n}\n\nfor (var n := 0; n \u003C 6; n \u002B= 1) {\n    if(n == 5) \n        v[n] := HeadAmplitude; \n    else if(n == 4) \n        v[n] := setpointScaling * RegulatorZ.MaximalPossibleSetpoint * RegulatorZ.RelativeSetpoint / scaling; \n    else \n        v[n] := demodulateAtFrequency(n * HeadFrequency) * scaling;\n}\n\nreturn [v];",
+    "Optical": "// standard Fourier demodulation\n\nvar v[6];\nfor (var n := 0; n \u003C 6; n \u002B= 1){\n    v[n] := demodulateAtFrequency(n * HeadFrequency) * scaling\n}\nreturn [v];"
+  },
+  "GlobalVariables": {
+    "scaling": "readFromSettings(\u0027calibration\u0027, \u0027m1a-scaling\u0027)",
+    "setpointScaling": "1"
+  },
+  "Parameters": {
+    "doRegulate": {
+      "Type": "bool",
+      "Default": true
+    },
+    "overwriteHeadAmplitude": {
+      "Type": "bool",
+      "Default": false
+    },
+    "headAmp": {
+      "Type": "double",
+      "Default": 0.0,
+      "Minimum": 0.0,
+      "Maximum": 6000.0
+    },
+    "originalHeadAmp": {
+      "Type": "double",
+      "Default": 0.0,
+      "Minimum": 0.0,
+      "Maximum": 6000.0
+    }
+  },
+  "Outputs": {
+    "HeadAmplitude": "if(overwriteHeadAmplitude)\n    return [headAmp]; \nreturn [HeadAmplitude];"
+  },
+  "PID": {
+    "Z": {
+      "Input": "if (doRegulate){\n    return [abs(UnaveragedMechanical[1]) * scaling / setpointScaling];\n}\nreturn [RegulatorZ.MaximalPossibleSetpoint*RegulatorZ.RelativeSetpoint];",
+      "Setpoint": "RegulatorZ.MaximalPossibleSetpoint*RegulatorZ.RelativeSetpoint",
+      "SetpointMode": "Relative"
+    }
+  },
+  "Scan": {
+    "StartPixel": "FirstButOne",
+    "Template": {
+      "Class": "2D"
+    }
+  },
+  "Meta": {
+    "Sphere": "Spectroscopy"
+  }
+}

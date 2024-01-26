@@ -1,0 +1,36 @@
+{
+    "GlobalVariables": {
+      /* a0, a1, a2, ...*/
+      "Px": [
+        -0.2,
+        1,
+        0.005,
+        -0.00007
+      ],
+      "xMax": 100
+      /* maximum value of scanner in X axis, in um */,
+      "nextPx": false
+    },
+    "Meta": {
+      "Sphere": "Afm"
+    },
+    "Scan": {
+      "Outcome": "BackAndForthSeparated",
+      "StartPixel": "FirstButOne",
+      "RegulatedZ": "Mandatory",
+      "MovingForward": {
+        "XY": "var x_s := ((PixelColumn/Scan.Columns)-0.5) * Scan.Size.X;\nvar y_s := ((PixelRow)/Scan.Rows-0.5) * Scan.Size.Y;\n\nvar x := x_s \u002B Scan.Center.X;\nvar y := y_s \u002B Scan.Center.Y;\n\nvar xCor := Px[0] \u002B Px[1] * x \u002B Px[2] * x^2 \u002B Px[3] * x^3;\nxCor := clamp(0, xCor, xMax);\nvar yCor := y;\n\nif (abs(UnaveragedX-xCor)\u003C0.01 and abs(UnaveragedY-yCor)\u003C 0.01)\n    nextPx := true;\n\nreturn [xCor, yCor];\n",
+        "RowColumnDepth": "var col := PixelColumn;\nif (nextPx){\n    nextPx := false;\n    col := PixelColumn\u002B1;\n}\nif (col \u003E= Scan.Columns)\n    Scan.MovingBackward();\nreturn [PixelRow,col,PixelDepth];",
+        "Z": "return [];"
+      },
+      "MovingBackward": {
+        "XY": "var x_s := ((PixelColumn)/Scan.Columns-0.5) * Scan.Size.X;\nvar y_s := ((PixelRow)/Scan.Rows-0.5) * Scan.Size.Y;\n\nvar x := x_s \u002B Scan.Center.X;\nvar y := y_s \u002B Scan.Center.Y;\n\nvar xCor := Px[0] \u002B Px[1] * x \u002B Px[2] * x^2 \u002B Px[3] * x^3;\nxCor := clamp(0, xCor, xMax);\nvar yCor := y;\n\nif (abs(UnaveragedX-xCor)\u003C0.01 and abs(UnaveragedY-yCor)\u003C 0.01)\n    nextPx := true;\n\nreturn [xCor, yCor];\n",
+        "RowColumnDepth": "var col := PixelColumn;\nif (nextPx){\n    nextPx := false;\n    col := PixelColumn-1;\n}\nif (col \u003C= 0)\n    Scan.MovingNextRow();\nreturn [PixelRow,col,PixelDepth];"
+      },
+      "MovingNextRow": {
+        "XY": "var x_s := -0.5 * Scan.Size.X;\nvar y_s := ((PixelRow)/Scan.Rows-0.5) * Scan.Size.Y;\n\nvar x := x_s \u002B Scan.Center.X;\nvar y := y_s \u002B Scan.Center.Y;\n\nvar xCor := Px[0] \u002B Px[1] * x \u002B Px[2] * x^2 \u002B Px[3] * x^3;\nxCor := clamp(0, xCor, xMax);\nvar yCor := y;\n\nif (abs(UnaveragedX-xCor)\u003C0.01 and abs(UnaveragedY-yCor)\u003C 0.01)\n    nextPx := true;\n\nreturn [xCor,yCor];\n",
+        "RowColumnDepth": "var row := PixelRow;\nvar col := 0;\nif (nextPx){\n    nextPx := false;\n    row := PixelRow \u002B 1;\n    (row \u003E= Scan.Rows) ?  Scan.End() : Scan.MovingForward();\n}\nreturn [row,col,PixelDepth];"
+      },
+      "Departing": {}
+    }
+  }

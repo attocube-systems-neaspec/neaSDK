@@ -1,0 +1,25 @@
+{
+    /*
+    Performs a Archimedean spiral in XY plane. Does standard Fourier demodulation.
+    Tip will speed up over the course of the scan.
+    */
+    "GlobalVariables": {
+      "num_rotations": 5
+    },
+    "Scan": {
+      "EmptyPixel": "Last",
+      "RegulatedZ": "Mandatory",
+      "Outcome": "Forth",
+      "StartPixel": "Center",
+      "Arriving": {
+        "XY": "if (abs(AveragedX-Scan.Center.X) \u003E 0.01 or abs(AveragedY-Scan.Center.Y) \u003E 0.01)\n    Scan.Arriving();\nreturn [Scan.Center.X,Scan.Center.Y];"
+      },
+      "MovingForward": {
+        "XY": "var progress := Scan.Time/(Scan.PixelTime*Scan.Columns);\nif (progress \u003E 1) {\n    progress := 1;\n    Scan.End();\n}\n\nvar radiusX := progress*Scan.Size.X / (2*cos(pi/4));\nvar radiusY := progress*Scan.Size.Y / (2*sin(pi/4));\nvar t := 2*pi * progress*num_rotations - pi/4;\nreturn [Scan.Center.X \u002B radiusX * sin(t), Scan.Center.Y - radiusY * cos(t)];",
+        "RowColumnDepth": "return [0,trunc(Scan.Time/(Scan.PixelTime*Scan.Columns)*Scan.Columns),0];"
+      },
+      "Departing": {
+        "XY": "return [Scan.Center.X,Scan.Center.Y];"
+      }
+    }
+  }

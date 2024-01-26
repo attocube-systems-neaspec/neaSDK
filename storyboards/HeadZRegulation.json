@@ -1,0 +1,59 @@
+{
+  "GlobalVariables": {
+    "m1aScaling": "readFromSettings(\u0027calibration\u0027, \u0027m1a-scaling\u0027)",
+    "newOffset": "0.0",
+    "regulateHeadPiezo": false,
+    "regulateSamplePiezo": true,
+    "regulatorI": "1.0",
+    "regulatorP": "1.0",
+    "headZCalibration": "0.0085",
+    "m1aInContact": "72.0"
+  },
+  "PID": {
+    "HeadRegulator": {
+      "Setpoint": "if (m1aInContact \u003C 0.0)\n    return [abs(AveragedMechanical[1])];\nreturn [m1aInContact];",
+      "SetpointMode": "Relative",
+      "MaximumOutput": "9000.0",
+      "MinimumOutput": "-9000.0",
+      "InitialOutput": "0.0",
+      "P": "14.0*regulatorP",
+      "I": "0.09*regulatorI",
+      "D": "0.0"
+    }
+  },
+  "Outputs": {
+    "HeadOffset": "if (regulateHeadPiezo){\n    newOffset := HeadRegulator(abs(AveragedMechanical[1]));\n    regulateSamplePiezo := false;\n}\nelse{\n    regulateSamplePiezo := true;\n    newOffset := 0.0;\n}\nreturn [newOffset];",
+    "Mechanical": "var v[6];\n\nfor (var n := 0; n \u003C 6; n \u002B= 1) {\n    switch {\n        case (n == 5):\n            v[n] := (9000-HeadOffset)*headZCalibration;\n        default:\n            v[n] := AveragedMechanical[n];\n    }\n        \n}\n\nreturn [v];"
+  },
+  "Meta": {
+    "Sphere": "Afm"
+  },
+  "Scan": {
+    "Outcome": "BackAndForthSeparated",
+    "Template": {
+      "Class": "2D"
+    },
+    "Arriving": {
+      "M": "if (m1aInContact \u003C 0.0){\n    m1aInContact := abs(AveragedMechanical[1]);\n    Scan.Arriving();\n}\nif (not (regulateHeadPiezo))\n    regulateHeadPiezo := true;\nreturn [nan];",
+      "Z": "if (regulateSamplePiezo){\n    Scan.Arriving();\n    return [];\n}\nreturn [UnaveragedZ];"
+    },
+    "MovingForward": {
+      "Z": "UnaveragedZ"
+    },
+    "MovingBackward": {
+      "Z": "UnaveragedZ"
+    },
+    "WaitingBackward": {
+      "Z": "UnaveragedZ"
+    },
+    "WaitingForward": {
+      "Z": "UnaveragedZ"
+    },
+    "MovingNextRow": {
+      "Z": "UnaveragedZ"
+    },
+    "Departing": {
+      "M": "if (regulateHeadPiezo)\n    Scan.Departing();\nregulateHeadPiezo := false;\nnewOffset := 0.0;\nreturn[nan];"
+    }
+  }
+}

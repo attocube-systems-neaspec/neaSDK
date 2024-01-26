@@ -1,0 +1,28 @@
+{
+    "GlobalVariables": {
+      "approachSpeed": 1,
+      "expectedZ": 0.0,
+      "offsetZ": 0.0,
+      "direction": -1.0,
+      "pixelReverse": 0,
+      "offsetZReverse": 0.0
+    },
+    "Meta": {
+      "Sphere": "Afm"
+    },
+    "Scan": {
+      "RegulatedZ": "Mandatory",
+      "Outcome": "Forth",
+      "EmptyPixel": "Zero",
+      "Arriving": {
+        "Z": "if (Scan.Depths == 1)\n    Scan.EndImmediately();\nelse\n    approachSpeed := 2*Scan.Size.Z/(Scan.Depths*Scan.PixelTime)*0.4096;\n\nif (expectedZ == 0.0) {\n    expectedZ := Scan.Size.Z \u002B AveragedZ;\n    offsetZ := Scan.Size.Z \u002B AveragedZ;\n    offsetZReverse := AveragedZ;\n}\nif (Scan.Time \u003C 20)\n    Scan.Arriving();\nreturn [expectedZ];\n"
+      },
+      "MovingForward": {
+        "Z": "expectedZ := UnaveragedZ \u002B direction * approachSpeed;\nif (direction == -1){\n\n\n    if (abs(AveragedMechanical[1]) \u003C RegulatorZ.RelativeSetpoint * RegulatorZ.MaximalPossibleSetpoint){\n        offsetZReverse := UnaveragedZ;\n        direction := 1.0;\n        pixelReverse := PixelDepth;\n        return []; \n    }\n\n}\n\nreturn [expectedZ];",
+        "RowColumnDepth": "if (direction == -1) {\n\n    if (expectedZ \u003C= offsetZ - 2.0*Scan.Size.Z * (PixelDepth\u002B1)/Scan.Depths) {\n    //    var depth := PixelDepth\u002B1;\n    //    if (depth \u003E= Scan.Depths)\n    //        Scan.End();\n        return [PixelRow,PixelColumn,PixelDepth\u002B1];\n    }\n}\nelse {\n    if (expectedZ \u003E= offsetZReverse \u002B 2.0* Scan.Size.Z * (PixelDepth-pixelReverse\u002B1)/Scan.Depths) {\n        var depth := PixelDepth\u002B1;\n        if ((depth \u003E= Scan.Depths) or (Scan.MaximumZ \u003C= AveragedZ\u002B0.05))\n            Scan.End();\n        return [PixelRow,PixelColumn,PixelDepth\u002B1];\n    }\n}\nreturn [PixelRow,PixelColumn,PixelDepth];"
+      },
+      "Departing": {
+        "Z": "return [];"
+      }
+    }
+  }
