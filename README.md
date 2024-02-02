@@ -22,4 +22,7 @@ Paste any storyboard to http://nea-server/storyboard/edit/by-name/new (only acce
 
 `neagui` is Python package for an alternative GUI to control and monitor a neaSCOPE. It is based on `PySide`, `pyqtgraph` and `nea_tools` and is designed to be easily extendable while also providing simple access to most core functionalities to handle a neaSCOPE. The default usage of `neagui` is the ExpertMode which includes all major widgets i.e. expertmode.exe is installed alongside the installation of neagui. Yet, it can be used as standard Python package to import and use individual widgets.
 
+## Community
+
+Get help on your own SDK project by starting a new or reading through existing threads in our discussion section. Please stick to github community guidelines. 
 
