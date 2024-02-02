@@ -17,3 +17,9 @@ mode where a Raman spectrum is recorded in contact and out of contact at
 each pixel position. Tip retraction is done by moving the tip upwards while 
 the sample is at a static position. There are two Storyboards, one for 
 Contact Mode and Tapping Mode each.
+
+### Parabola Scan
+
+Python script to spatially map the laser beam by scanning the parabolic
+mirror in 3 axes. Connects to microscope as stand-alone script and
+returns scan results as `.png` and `.h5`.
