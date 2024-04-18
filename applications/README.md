@@ -23,3 +23,12 @@ Contact Mode and Tapping Mode each.
 Python script to spatially map the laser beam by scanning the parabolic
 mirror in 3 axes. Connects to microscope as stand-alone script and
 returns scan results as `.png` and `.h5`.
+
+
+### Particle Tracker
+
+Jupyter notebook to track the lateral drift of the sample. It records 
+multiple 2D AFM images one after another. Each scan is compared to a 
+reference scan recorded previously and the relative shift is calculated.
+Includes display of live scan data on runtime.
+Requires foreign libraries `matplotlib`, `scipy`, `nest_asyncio`, `ipympl`.
