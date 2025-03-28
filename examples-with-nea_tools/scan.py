@@ -27,11 +27,8 @@ def scan_nanoftir():
                       Name = "nanoFTIR spectrum", # name displayed in project browser
                       PhysicalOffsetX = 50, # central position in x, in um
                       PhysicalOffsetY = 50, # central position in y, in um
-                      PhysicalSizeX = 5, # size in x, in um
-                      PhysicalSizeY = 5, # size in y, in um
-                      Angle = 0, # angle of scan, in rad
-                      TargetResolutionHeight = 100, # number of pixels in x
-                      TargetResolutionWidth = 100, # number of pixels in y
+                      PhysicalRangeM = (0,800) # start and stop of nanoFTIR stage, in um
+                      ResolutionDepth = 1024 # pixel in spectrum
                       TargetMillisecondsPerPixel = 10.2) as fourier: # integration time
         fourier.scan()
         fourier.wait_for_scan()
