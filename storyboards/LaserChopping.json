@@ -1,0 +1,26 @@
+{
+  "GlobalVariables": {
+    "scaling": "readFromSettings(\u0027calibration\u0027, \u0027m1a-scaling\u0027)",
+    "chopperFrequency": 1000,
+    "demodOrder": 1
+  },
+  "Inputs": {
+    "Mechanical": "Daq_1024_2500ksps",
+    "Optical": "Daq_1024_2500ksps"
+  },
+  "Channels": {
+    "Mechanical": "var v[6];\n\nfor (var n := 0; n \u003C 6; n \u002B= 1) {\n    if (n == 0)\n        v[n] := demodulateAtFrequency(n * HeadFrequency);\n    else\n        v[n] := demodulateAtFrequency(n * HeadFrequency) * scaling;\n}\n\nreturn [v];",
+    "Optical": " var v[6];\n \n for (var n := 0; n \u003C 6; n \u002B= 1) {\n    v[n] := demodulateAtFrequency(n * HeadFrequency \u002B demodOrder * chopperFrequency) * scaling\n}\n    \nreturn [v];"
+  },
+  "Outputs": {
+    "LaserTriggerFrequency": "return [ChopperFrequency];"
+  },
+  "Scan": {
+    "Template": {
+      "Class": "2D"
+    }
+  },
+  "Meta": {
+    "Sphere": "PseudoHeterodyneReflection"
+  }
+}
