@@ -21,3 +21,7 @@ Scan procedure aiming to open-loop XY scanner like the cryo-neaSCOPE. Allows def
 ### SpiralScan.json
 
 Defines a scan route which is an Archimeadean spiral.
+
+### LaserChopping.json
+
+Mechanical Channel has standard tapping demodulation. Optical Channel demodulates at `n * tip_frequency + m * chopper_frequency`.
