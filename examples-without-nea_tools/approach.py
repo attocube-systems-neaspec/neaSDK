@@ -23,3 +23,8 @@ def approach(setpoint=0.8):
     # sleep until system has reached contact   
     while not context.Microscope.Py.IsRegulatorSetpointReachedZ:
         sleep(0.1, False)
+
+def retract():
+    if not context.Microscope.Py.IsRegulatorOutputEnabled:
+        return
+    context.Logic.DepartSample.Execute()
