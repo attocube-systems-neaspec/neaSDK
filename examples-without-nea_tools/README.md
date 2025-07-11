@@ -13,3 +13,7 @@ Basic handling of lasers like selecting, starting emission and tuning.
 ### approach.py
 
 Basic approaching and retracting of tip
+
+### search_database.py
+
+Perform a keyword search through projects and scans in neaSCOPE database.
