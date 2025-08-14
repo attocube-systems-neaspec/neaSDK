@@ -13,7 +13,7 @@
     "Optical": " var v[6];\n \n for (var n := 0; n \u003C 6; n \u002B= 1) {\n    v[n] := demodulateAtFrequency(n * HeadFrequency \u002B demodOrder * chopperFrequency) * scaling\n}\n    \nreturn [v];"
   },
   "Outputs": {
-    "LaserTriggerFrequency": "return [ChopperFrequency];"
+    "LaserTriggerFrequency": "return [chopperFrequency];"
   },
   "Scan": {
     "Template": {
