@@ -6,7 +6,7 @@
   },
   "Inputs": {
     "Mechanical": "Daq_1024_2500ksps",
-    "Optical": "Daq_1024_2500ksps"
+    "Optical": [8, "Daq_1024_2500ksps"] // demodulation uses 8 packets x 1024 samples
   },
   "Channels": {
     "Mechanical": "var v[6];\n\nfor (var n := 0; n \u003C 6; n \u002B= 1) {\n    if (n == 0)\n        v[n] := demodulateAtFrequency(n * HeadFrequency);\n    else\n        v[n] := demodulateAtFrequency(n * HeadFrequency) * scaling;\n}\n\nreturn [v];",
