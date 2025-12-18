@@ -1,6 +1,7 @@
 import sys
 from neaspec import context
 from time import sleep
+import Nea.Client.SharedDefinitions as nea
 
 neascan_console = sys.version_info.minor == 4
 
