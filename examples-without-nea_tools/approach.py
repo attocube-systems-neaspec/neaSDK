@@ -1,5 +1,6 @@
 import sys
 from neaspec import context
+from time import sleep
 
 neascan_console = sys.version_info.minor == 4
 
@@ -14,7 +15,7 @@ def approach(setpoint=0.8):
     
     # check if approach is possible
     if context.Logic.ApproachSample.CanExecute(setpoint):
-        context.Logic.ApproachSample(setpoint)
+        context.Logic.ApproachSample.Exeucte(setpoint)
     else:
         state = context.Logic.CurrentState if neascan_console else nea.IPyLogic(context.Logic).CurrentState
         print("Cannot approach in current state", state)
