@@ -17,3 +17,7 @@ Basic approaching and retracting of tip
 ### search_database.py
 
 Perform a keyword search through projects and scans in neaSCOPE database.
+
+### move_tip.py
+
+Move tip to given coordinates with given speed.
