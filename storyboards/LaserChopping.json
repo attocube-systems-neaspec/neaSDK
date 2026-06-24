@@ -16,6 +16,8 @@
     "LaserTriggerFrequency": "return [chopperFrequency];"
   },
   "Scan": {
+    "StartPixel": "FirstButOne",
+    "Outcome":"BackAndForthSeparated",
     "Template": {
       "Class": "2D"
     }
