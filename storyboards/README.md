@@ -10,6 +10,10 @@ Alternative demodulation mode based on standard Fourier demodulation. Extends th
 
 Extension to standard approach curve. Initially, performs a true approach curve and continues with a retraction curve as soon as AFM setpoint is reached. Uses identical scan parameters as standard approach curve but performs both approach and retraction motion without changing scan state. This means if 100 px are used for z range, about 50 px are used for approach motion and remaining pixels for retraction motion. 
 
+### ExternalDelayStage.json
+
+A simple depth scan with tip in contact. The scan is suspended after each pixel and control handed to client PC. Run `ExternalDelayStageCallback.py` in neaSCAN console before the storyboard scan is started. This accepts the hand-over, executes required motion of a connected delay stage, and returns control back to the controller. 
+
 ### HeadZRegulation.json
 
 Performs standard AFM imaging but uses the piezo of the head to regulate AFM height while sample Z is frozen on a fixed value throughout the scan. AFM height (= calibrated Head Offset) is written to channel M5A. 
@@ -25,3 +29,4 @@ Defines a scan route which is an Archimeadean spiral.
 ### LaserChopping.json
 
 Mechanical Channel has standard tapping demodulation. Optical Channel demodulates at `n * tip_frequency + m * chopper_frequency`.
+
