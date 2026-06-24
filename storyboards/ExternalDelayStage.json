@@ -1,0 +1,19 @@
+{
+  "Scan": {
+    "EmptyPixel": "NaN",
+    "Template": {},
+    "RegulatedZ": "Mandatory",
+    "StartPixel": "First",
+    "Outcome": "Forth",
+    "MovingForward": {
+      "RowColumnDepth": "if (Scan.IsSuspendedToWaitForClient) {\n    return [];\n} \n\nif (PixelDepth == Scan.Depths) {\n    Scan.End();\n    return [PixelRow, PixelColumn, PixelDepth];\n}\n\nScan.SuspendToWaitForClient();\nScan.WaitingForward();\nreturn [PixelRow, PixelColumn, PixelDepth];",
+      "Z": "return [];",
+      "XY": "return [];"
+    },
+    "WaitingForward": {
+      "RowColumnDepth": "if (Scan.IsSuspendedToWaitForClient)\n    return [];\nScan.MovingForward();\nreturn [PixelRow, PixelColumn, PixelDepth\u002B1];",
+      "Z": "return [];",
+      "XY": "return [];"
+    }
+  }
+}
