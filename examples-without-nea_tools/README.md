@@ -21,3 +21,7 @@ Perform a keyword search through projects and scans in neaSCOPE database.
 ### move_tip.py
 
 Move tip to given coordinates with given speed.
+
+### live_stream.py
+
+Collects data from live data feed and writes them to a file output. 
